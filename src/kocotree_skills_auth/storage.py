@@ -21,9 +21,7 @@ def create_key(name: str = "", expires_in_days: int | None = None) -> dict:
         key_id = cur.lastrowid
 
     return {
-        "id": key_id,
         "api_key": raw_key,
-        "short_id": short_id,
         "name": name,
         "created_at": now.isoformat(),
         "expires_at": expires_at.isoformat() if expires_at else None,
