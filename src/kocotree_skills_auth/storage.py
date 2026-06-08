@@ -13,12 +13,14 @@ def create_key(name: str = "", expires_in_days: int | None = None) -> dict:
     expires_at = (now + timedelta(days=expires_in_days)) if expires_in_days else None
 
     with get_db() as conn:
-        conn.execute(
+        cur = conn.execute(
             "INSERT INTO api_keys (key_hash, short_id, name, created_at, expires_at) VALUES (?, ?, ?, ?, ?)",
             (key_hash, short_id, name, now.isoformat(), expires_at.isoformat() if expires_at else None),
         )
+        key_id = cur.lastrowid
 
     return {
+        "id": key_id,
         "api_key": raw_key,
         "short_id": short_id,
         "name": name,
@@ -44,11 +46,11 @@ def update_last_used(key_hash: str):
         )
 
 
-def revoke_by_short_id(short_id: str) -> bool:
+def revoke_by_id(key_id: int) -> bool:
     with get_db() as conn:
         cur = conn.execute(
-            "UPDATE api_keys SET revoked = 1 WHERE short_id = ? AND revoked = 0",
-            (short_id,),
+            "UPDATE api_keys SET revoked = 1 WHERE id = ? AND revoked = 0",
+            (key_id,),
         )
         return cur.rowcount > 0
 

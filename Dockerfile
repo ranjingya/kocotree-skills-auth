@@ -15,6 +15,7 @@ RUN uv sync --frozen --no-install-project -i https://mirrors.aliyun.com/pypi/sim
 COPY main.py ./
 COPY gunicorn.py ./
 COPY src ./src
+COPY README.md ./
 
 # 再装项目
 RUN uv sync --frozen -i https://mirrors.aliyun.com/pypi/simple/

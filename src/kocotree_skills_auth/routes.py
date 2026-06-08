@@ -13,7 +13,7 @@ def create_key():
     """创建新的 API Key，原始 key 仅在此响应中出现一次"""
     data = request.get_json(silent=True) or {}
     name = data.get("name", "")
-    expires_in_days = data.get("expires_in_days")
+    expires_in_days = data.get("expires_in_days", 30)
     result = storage.create_key(name=name, expires_in_days=expires_in_days)
     return jsonify(result), 201
 
@@ -45,12 +45,12 @@ def list_keys():
 @rate_limit
 @require_api_key
 def revoke_key():
-    """通过 short_id 撤销指定 API Key"""
+    """通过 id 撤销指定 API Key"""
     data = request.get_json(silent=True) or {}
-    short_id = data.get("short_id")
-    if not short_id:
-        return jsonify({"error": "Missing short_id field."}), 400
-    if not storage.revoke_by_short_id(short_id):
+    key_id = data.get("id")
+    if not key_id:
+        return jsonify({"error": "Missing id field."}), 400
+    if not storage.revoke_by_id(int(key_id)):
         return jsonify({"error": "Key not found or already revoked."}), 404
     return jsonify({"detail": "Key revoked."})
 
