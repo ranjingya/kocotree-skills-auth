@@ -1,26 +1,6 @@
-# kktree-auth
+# kocotree-skills-auth
 
 基于 Flask + SQLite 的轻量 API Key 认证服务。
-
-## 安装
-
-```bash
-uv sync
-```
-
-## 启动（开发）
-
-```bash
-uv run python main.py
-```
-
-服务运行在 http://localhost:5050
-
-## 启动（生产）
-
-```bash
-uv run gunicorn -c gunicorn.py main:app
-```
 
 ## Docker 部署
 
