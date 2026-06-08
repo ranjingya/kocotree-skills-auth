@@ -1,4 +1,4 @@
-from kktree_auth.app import create_app
+from kocotree_skills_auth.app import create_app
 
 app = create_app()
 
