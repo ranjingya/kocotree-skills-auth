@@ -15,21 +15,15 @@ def create_key():
     name = data.get("name", "")
     expires_in_days = data.get("expires_in_days", 30)
     result = storage.create_key(name=name, expires_in_days=expires_in_days)
-    return jsonify(result), 201
+    return jsonify({"code": 0, "data": result, "msg": "ok"}), 201
 
 
 @bp.route("/auth/verify", methods=["GET"])
 @rate_limit
 @require_api_key
-def verify(current_key):
-    """验证 API Key 是否有效，返回 key 元信息"""
-    return jsonify({
-        "valid": True,
-        "name": current_key.get("name"),
-        "short_id": current_key.get("short_id"),
-        "created_at": current_key.get("created_at"),
-        "expires_at": current_key.get("expires_at"),
-    }), 200
+def verify():
+    """验证 API Key 是否有效，通过返回 200，不通过由装饰器返回 401"""
+    return jsonify({"code": 0, "data": None, "msg": "ok"})
 
 
 @bp.route("/keys", methods=["GET"])
@@ -38,7 +32,7 @@ def verify(current_key):
 def list_keys():
     """列出所有 API Key 的基本信息（不含哈希和原始 key）"""
     keys = storage.list_keys()
-    return jsonify(keys)
+    return jsonify({"code": 0, "data": keys, "msg": "ok"})
 
 
 @bp.route("/keys/revoke", methods=["POST"])
@@ -49,10 +43,7 @@ def revoke_key():
     data = request.get_json(silent=True) or {}
     key_id = data.get("id")
     if not key_id:
-        return jsonify({"error": "Missing id field."}), 400
+        return jsonify({"code": 400, "data": None, "msg": "Missing id field."}), 400
     if not storage.revoke_by_id(int(key_id)):
-        return jsonify({"error": "Key not found or already revoked."}), 404
-    return jsonify({"detail": "Key revoked."})
-
-
-
+        return jsonify({"code": 404, "data": None, "msg": "Key not found or already revoked."}), 404
+    return jsonify({"code": 0, "data": None, "msg": "ok"})

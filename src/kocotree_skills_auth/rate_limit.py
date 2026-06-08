@@ -28,7 +28,7 @@ def rate_limit(f):
             _requests.pop(key, None)
 
         if len(_requests.get(key, [])) >= max_requests:
-            return jsonify({"error": f"Rate limit exceeded. Max {max_requests} requests per {window}s."}), 429
+            return jsonify({"code": 429, "data": None, "msg": f"Rate limit exceeded. Max {max_requests} requests per {window}s."}), 429
 
         _requests[key].append(now)
         return f(*args, **kwargs)

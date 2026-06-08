@@ -1,5 +1,4 @@
 from functools import wraps
-import inspect
 import time
 
 from flask import jsonify, request
@@ -18,22 +17,18 @@ def require_api_key(f):
             api_key = request.args.get("api_key")
 
         if not api_key:
-            return jsonify({"error": "Missing API key. Provide via Authorization: Bearer <key> header or api_key query param."}), 401
+            return jsonify({"code": 401, "data": None, "msg": "Missing API key."}), 401
 
         key_hash = hash_key(api_key)
         record = lookup_by_hash(key_hash)
 
         if not record:
-            return jsonify({"error": "Invalid API key."}), 401
+            return jsonify({"code": 401, "data": None, "msg": "Invalid API key."}), 401
 
         if record.get("expires_ts") and time.time() > record["expires_ts"]:
-            return jsonify({"error": "API key expired."}), 401
+            return jsonify({"code": 401, "data": None, "msg": "API key expired."}), 401
 
         update_last_used(key_hash)
-
-        # 如果视图函数声明了 current_key 参数，则注入
-        if "current_key" in inspect.signature(f).parameters:
-            kwargs["current_key"] = record
         return f(*args, **kwargs)
 
     return decorated
