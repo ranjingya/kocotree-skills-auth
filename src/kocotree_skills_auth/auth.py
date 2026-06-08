@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
 from functools import wraps
 import inspect
+import time
 
 from flask import jsonify, request
 
@@ -26,10 +26,8 @@ def require_api_key(f):
         if not record:
             return jsonify({"error": "Invalid API key."}), 401
 
-        if record.get("expires_at"):
-            expires = datetime.fromisoformat(record["expires_at"])
-            if datetime.now(timezone.utc) > expires:
-                return jsonify({"error": "API key expired."}), 401
+        if record.get("expires_ts") and time.time() > record["expires_ts"]:
+            return jsonify({"error": "API key expired."}), 401
 
         update_last_used(key_hash)
 

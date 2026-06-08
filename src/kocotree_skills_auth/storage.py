@@ -11,11 +11,12 @@ def create_key(name: str = "", expires_in_days: int | None = None) -> dict:
     short_id = get_short_id(raw_key)
     now = datetime.now(timezone.utc)
     expires_at = (now + timedelta(days=expires_in_days)) if expires_in_days else None
+    expires_ts = int(expires_at.timestamp()) if expires_at else None
 
     with get_db() as conn:
         cur = conn.execute(
-            "INSERT INTO api_keys (key_hash, short_id, name, created_at, expires_at) VALUES (?, ?, ?, ?, ?)",
-            (key_hash, short_id, name, now.isoformat(), expires_at.isoformat() if expires_at else None),
+            "INSERT INTO api_keys (key_hash, short_id, name, created_at, expires_at, expires_ts) VALUES (?, ?, ?, ?, ?, ?)",
+            (key_hash, short_id, name, now.isoformat(), expires_at.isoformat() if expires_at else None, expires_ts),
         )
         key_id = cur.lastrowid
 
@@ -26,6 +27,7 @@ def create_key(name: str = "", expires_in_days: int | None = None) -> dict:
         "name": name,
         "created_at": now.isoformat(),
         "expires_at": expires_at.isoformat() if expires_at else None,
+        "expires_ts": expires_ts,
     }
 
 
@@ -58,6 +60,6 @@ def revoke_by_id(key_id: int) -> bool:
 def list_keys() -> list[dict]:
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT id, short_id, name, created_at, expires_at, revoked, last_used FROM api_keys ORDER BY created_at DESC"
+            "SELECT id, short_id, name, created_at, expires_at, expires_ts, revoked, last_used FROM api_keys ORDER BY created_at DESC"
         ).fetchall()
         return [dict(row) for row in rows]

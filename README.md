@@ -24,11 +24,13 @@ curl -X POST http://localhost:5050/api/v1/keys \
 
 ```json
 {
+  "id": 1,
   "api_key": "kk_abc123...",
   "short_id": "kk_abc12...3xyz",
   "name": "my-app",
   "created_at": "2026-06-08T10:00:00+00:00",
-  "expires_at": "2026-09-06T10:00:00+00:00"
+  "expires_at": "2026-09-06T10:00:00+00:00",
+  "expires_ts": 1757296800
 }
 ```
 
@@ -52,7 +54,7 @@ curl http://localhost:5050/api/v1/keys \
 curl -X POST http://localhost:5050/api/v1/keys/revoke \
   -H "Authorization: Bearer kk_abc123..." \
   -H "Content-Type: application/json" \
-  -d '{"short_id": "kk_abc12...3xyz"}'
+  -d '{"id": 1}'
 ```
 
 ## 配置

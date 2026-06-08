@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS api_keys (
     short_id    TEXT NOT NULL,                      -- 前8位+后4位，用于识别和撤销
     name        TEXT NOT NULL DEFAULT '',           -- key 名称
     created_at  TEXT NOT NULL,                      -- 创建时间 ISO 8601
-    expires_at  TEXT,                               -- 过期时间，NULL 表示永不过期
+    expires_at  TEXT,                               -- 过期时间 ISO 8601，NULL 表示永不过期
+    expires_ts  INTEGER,                            -- 过期时间戳（秒），NULL 表示永不过期
     revoked     INTEGER NOT NULL DEFAULT 0,         -- 0=有效 1=已撤销
     last_used   TEXT                                -- 最后使用时间
 );
