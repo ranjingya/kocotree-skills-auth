@@ -12,4 +12,9 @@ services:
     environment:
       - KKTREE_DB_PATH=/app/data/keys.db
     restart: on-failure
-    network_mode: bridge
+    networks:
+      - kocotree-skills
+
+networks:
+  kocotree-skills:
+    external: true
