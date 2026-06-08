@@ -9,11 +9,15 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY uv.lock ./
 
-RUN uv sync --frozen -i https://mirrors.aliyun.com/pypi/simple/
+# 先装依赖（docker 缓存）
+RUN uv sync --frozen --no-install-project -i https://mirrors.aliyun.com/pypi/simple/
 
 COPY main.py ./
 COPY gunicorn.py ./
 COPY src ./src
+
+# 再装项目
+RUN uv sync --frozen -i https://mirrors.aliyun.com/pypi/simple/
 
 EXPOSE 5050
 
