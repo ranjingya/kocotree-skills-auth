@@ -1,0 +1,15 @@
+services:
+  kocotree-skills-auth:
+    image: kocotree-skills-auth:1.0
+    container_name: kocotree-skills-auth
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    volumes:
+      - /opt/kocotree-skills-auth/data:/app/data
+    environment:
+      - KKTREE_DB_PATH=/app/data/keys.db
+    restart: on-failure
+    network_mode: bridge
