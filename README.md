@@ -57,6 +57,28 @@ curl -X POST http://localhost:5050/api/v1/keys/revoke \
   -d '{"id": 1}'
 ```
 
+## 客户端集成
+
+`examples/` 目录提供两个独立示例文件，供 skill 和其他后端服务复制使用。依赖 `requests` 库。
+
+### 后端装饰器（auth_verify.py）
+
+其他 Flask 后端服务通过 `@require_auth` 装饰器接入认证
+
+装饰器逻辑：
+- 请求无 `Authorization` → 调 auth 服务创建 key → 返回 `{code: 100, data: {api_key, ...}, msg: "key_created"}`
+- 请求有 `Authorization` → 调 auth 服务校验 → 通过执行接口，不通过返回 401
+
+环境变量 `AUTH_SERVICE_URL`，默认 `http://kocotree-skills-auth:5050`。
+
+### Skill 客户端（auth_client.py）
+
+Skill 通过 `AuthClient` 自动管理 key
+
+首次请求时，后端返回 `code=100`（新创建的 key），客户端自动保存到 `~/.kocotree-skills/auth.json` 并重试。后续请求自动带上 key。
+
+环境变量 `AUTH_KEY_PATH` 可覆盖本地存储路径。
+
 ## 配置
 
 环境变量：
@@ -66,3 +88,5 @@ curl -X POST http://localhost:5050/api/v1/keys/revoke \
 | `KKTREE_DB_PATH` | `keys.db` | SQLite 数据库文件路径 |
 | `KKTREE_RATE_LIMIT` | `60` | 每个窗口期最大请求数 |
 | `KKTREE_RATE_WINDOW` | `60` | 限速窗口时长（秒） |
+| `AUTH_SERVICE_URL` | `http://kocotree-skills-auth:5050` | auth 服务地址（后端装饰器用） |
+| `AUTH_KEY_PATH` | `~/.kocotree-skills/auth.json` | 本地 key 存储路径（skill 客户端用） |
