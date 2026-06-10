@@ -7,10 +7,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5050:5050"
-    volumes:
-      - /opt/kocotree-skills-auth/data:/app/data
-    environment:
-      - KKTREE_DB_PATH=/app/data/keys.db
     restart: on-failure
     networks:
       - kocotree-skills
