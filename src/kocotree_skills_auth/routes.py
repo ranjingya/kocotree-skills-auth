@@ -44,10 +44,15 @@ def redirect_callback():
     if not token_data:
         return f"<h3>授权失败</h3><p>{err}</p>", 401
 
+    user_info = verify_access_token(token_data["access_token"])
+    if user_info:
+        token_data["name"] = user_info.get("name", "")
+        token_data["open_id"] = user_info.get("open_id", "")
+
     _cleanup_pending()
     _pending_tokens[state] = {"data": token_data, "ts": time.time()}
 
-    return "<h3>授权成功</h3><p>请返回终端，可以关闭此页面。</p>"
+    return "<h3>授权成功</h3><p>请返回应用等待5-10s，可以关闭此页面。</p>"
 
 
 @bp.route("/auth/poll", methods=["GET"])
