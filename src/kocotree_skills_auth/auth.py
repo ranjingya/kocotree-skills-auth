@@ -21,6 +21,7 @@ def build_authorize_url(state=None):
         "redirect_uri": settings.feishu_redirect_uri,
         "response_type": "code",
         "state": state,
+        "scope": "offline_access"
     }
     return f"{FEISHU_AUTHORIZE_URL}?{urllib.parse.urlencode(params)}", state
 

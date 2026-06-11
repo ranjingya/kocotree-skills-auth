@@ -8,7 +8,7 @@
         return requests.get("http://other-service/api/data", headers=get_headers())
 
     result = fetch_data()
-    # 首次：自动打开浏览器飞书授权 → 轮询获取 token → 保存
+    # 首次：打开浏览器飞书授权 → 轮询获取 token → 保存
     # 后续：直接带 token 请求，过期自动刷新
 
 环境变量：
@@ -19,7 +19,6 @@
 import json
 import os
 import time
-import webbrowser
 from functools import wraps
 from pathlib import Path
 
@@ -96,8 +95,8 @@ def _oauth_login():
     authorize_url = result["data"]["authorize_url"]
     state = result["data"]["state"]
 
-    print("请在浏览器中完成飞书授权...")
-    webbrowser.open(authorize_url)
+    print("请完成飞书授权，手动在浏览器中打开以下链接：")
+    print(authorize_url)
 
     start = time.time()
     while time.time() - start < POLL_TIMEOUT:

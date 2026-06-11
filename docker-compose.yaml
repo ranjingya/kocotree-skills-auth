@@ -1,10 +1,12 @@
 services:
   kocotree-skills-auth:
-    image: kocotree-skills-auth:1.0
+    image: kocotree-skills-auth:2.0
     container_name: kocotree-skills-auth
     build:
       context: .
       dockerfile: Dockerfile
+    env_file: 
+      - .env
     ports:
       - "5050:5050"
     restart: on-failure
