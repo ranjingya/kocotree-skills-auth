@@ -24,7 +24,7 @@ from pathlib import Path
 
 import requests
 
-AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://localhost:5050")
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://121.40.167.37:5050")
 _DEFAULT_TOKEN_PATH = os.path.join(Path.home(), ".kocotree-skills", "auth.json")
 _token_path = os.getenv("AUTH_TOKEN_PATH", _DEFAULT_TOKEN_PATH)
 _token_cache = None
