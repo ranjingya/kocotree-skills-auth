@@ -1,3 +1,6 @@
+import json
+import os
+import tempfile
 import time
 
 from flask import Blueprint, jsonify, request
@@ -12,15 +15,44 @@ from .rate_limit import rate_limit
 
 bp = Blueprint("api", __name__, url_prefix="/api/v1")
 
-_pending_tokens: dict[str, dict] = {}
+_PENDING_DIR = os.path.join(tempfile.gettempdir(), "kocotree_auth_pending")
 _PENDING_TTL = 300
+os.makedirs(_PENDING_DIR, exist_ok=True)
+
+
+def _pending_path(state: str) -> str:
+    return os.path.join(_PENDING_DIR, f"{state}.json")
+
+
+def _save_pending(state: str, token_data: dict):
+    with open(_pending_path(state), "w", encoding="utf-8") as f:
+        json.dump({"data": token_data, "ts": time.time()}, f)
+
+
+def _pop_pending(state: str) -> dict | None:
+    path = _pending_path(state)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            pending = json.load(f)
+        os.remove(path)
+        if time.time() - pending.get("ts", 0) > _PENDING_TTL:
+            return None
+        return pending
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
 
 
 def _cleanup_pending():
     now = time.time()
-    expired = [k for k, v in _pending_tokens.items() if now - v["ts"] > _PENDING_TTL]
-    for k in expired:
-        _pending_tokens.pop(k, None)
+    for name in os.listdir(_PENDING_DIR):
+        path = os.path.join(_PENDING_DIR, name)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if now - data.get("ts", 0) > _PENDING_TTL:
+                os.remove(path)
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            pass
 
 
 @bp.route("/auth/login", methods=["GET"])
@@ -50,7 +82,7 @@ def redirect_callback():
         token_data["open_id"] = user_info.get("open_id", "")
 
     _cleanup_pending()
-    _pending_tokens[state] = {"data": token_data, "ts": time.time()}
+    _save_pending(state, token_data)
 
     return "<h3>授权成功</h3><p>请返回应用等待5-10s，可以关闭此页面。</p>"
 
@@ -63,7 +95,7 @@ def poll():
     if not state:
         return jsonify({"code": 400, "data": None, "msg": "Missing state."}), 400
 
-    pending = _pending_tokens.pop(state, None)
+    pending = _pop_pending(state)
     if not pending:
         return jsonify({"code": 202, "data": None, "msg": "Waiting for authorization."})
 
