@@ -16,3 +16,4 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kocotree_skills_auth"]
+artifacts = ["src/kocotree_skills_auth/assets/base64.txt"]
