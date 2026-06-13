@@ -9,7 +9,7 @@
 
     result = fetch_data()
     # 首次（无 token）：
-    #   第 1 次调用 → 打印授权链接 → 抛出 AuthPendingError（脚本退出）
+    #   第 1 次调用 → 打印授权链接 → 脚本退出
     #   用户完成浏览器授权后
     #   第 2 次调用 → 自动轮询获取 token → 保存 → 继续业务逻辑
     # 后续：直接带 token 请求，过期自动刷新
@@ -21,6 +21,7 @@
 
 import json
 import os
+import sys
 import time
 from functools import wraps
 from pathlib import Path
@@ -36,10 +37,6 @@ _token_cache = None
 POLL_INTERVAL = 3
 POLL_TIMEOUT = 60
 PENDING_EXPIRE = 300
-
-
-class AuthPendingError(Exception):
-    """授权链接已生成，等待用户在浏览器中完成授权。"""
 
 
 def _save_pending(state, authorize_url):
@@ -70,7 +67,7 @@ def _clear_pending():
 
 def _load_token():
     global _token_cache
-    if _token_cache:
+    if _token_cache is not None:
         return _token_cache
     try:
         with open(_token_path, "r", encoding="utf-8") as f:
@@ -157,7 +154,7 @@ def ensure_token():
       有效 token       → 直接返回
       可刷新           → 刷新后返回
       有 pending       → 轮询服务端，成功返回，超时则清除 pending 抛异常
-      无 token 无 pending → 发起授权，保存 pending，打印链接，抛 AuthPendingError
+      无 token 无 pending → 发起授权，保存 pending，打印链接，退出脚本
     """
     if not _is_access_token_expired():
         return
@@ -177,7 +174,8 @@ def ensure_token():
     authorize_url, state = _get_auth_url()
     _save_pending(state, authorize_url)
     print(f"请在浏览器中打开以下链接完成飞书授权：\n{authorize_url}", flush=True)
-    raise AuthPendingError("等待用户完成飞书授权，完成后请重试。")
+    print("完成授权后，请重新运行此脚本。", flush=True)
+    sys.exit(0)
 
 
 def get_headers():
@@ -190,10 +188,7 @@ def get_headers():
 
 
 def with_auth(f):
-    """装饰器：确保 token 有效后执行，401 时自动刷新重试。
-
-    AuthPendingError 会直接抛出，调用方应捕获并提示用户完成授权后重试。
-    """
+    """装饰器：确保 token 有效后执行，401 时自动刷新重试。"""
     @wraps(f)
     def decorated(*args, **kwargs):
         ensure_token()
